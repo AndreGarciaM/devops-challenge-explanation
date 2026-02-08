@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DevOps Challenge — Andres Garcia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0e17;--bg2:#0f1420;--bg3:#141a2a;--bg4:#1a2236;
+  --border:#1e293b;--border2:#2a3550;
+  --fg:#e2e8f0;--fg2:#94a3b8;--fg3:#64748b;
+  --cyan:#06d6a0;--cyan2:#0ea5e9;--cyan-glow:rgba(6,214,160,.12);
+  --red:#ef4444;--amber:#f59e0b;--violet:#8b5cf6;
+  --success:#22c55e;--warning:#eab308;--critical:#ef4444;
+  --font-display:'Outfit',system-ui,sans-serif;
+  --font-mono:'JetBrains Mono',monospace;
+}
+html{scroll-behavior:smooth;background:var(--bg)}
+body{font-family:var(--font-display);color:var(--fg);line-height:1.65;background:var(--bg);overflow-x:hidden;-webkit-font-smoothing:antialiased}
+::selection{background:rgba(6,214,160,.2);color:#fff}
+a{color:var(--cyan);text-decoration:none;transition:opacity .2s}
+a:hover{opacity:.8}
+
+/* ─── Scrollbar ─── */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+/* ─── Mesh Background ─── */
+.mesh-bg{position:fixed;inset:0;z-index:-1;
+  background:
+    radial-gradient(ellipse 80% 50% at 20% 10%,rgba(6,214,160,.06),transparent),
+    radial-gradient(ellipse 60% 40% at 80% 80%,rgba(14,165,233,.05),transparent),
+    radial-gradient(ellipse 50% 50% at 50% 50%,rgba(139,92,246,.03),transparent);
+}
+.grid-pattern{position:fixed;inset:0;z-index:-1;opacity:.35;
+  background-image:linear-gradient(var(--border) .5px,transparent .5px),linear-gradient(90deg,var(--border) .5px,transparent .5px);
+  background-size:80px 80px;mask-image:radial-gradient(ellipse 70% 60% at 50% 30%,black,transparent)}
+
+/* ─── Layout ─── */
+.container{max-width:1100px;margin:0 auto;padding:0 24px}
+section{padding:100px 0 60px}
+.section-divider{height:1px;background:linear-gradient(90deg,transparent,var(--border2),transparent);margin:0 auto;max-width:600px}
+
+/* ─── Navigation ─── */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;
+  background:rgba(10,14,23,.75);backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
+nav .inner{max-width:1100px;margin:0 auto;padding:12px 24px;display:flex;align-items:center;justify-content:space-between}
+nav .logo{font-weight:700;font-size:15px;letter-spacing:-.02em;color:var(--fg)}
+nav .logo span{color:var(--cyan);font-family:var(--font-mono)}
+nav ul{list-style:none;display:flex;gap:28px}
+nav ul li a{font-size:13px;color:var(--fg3);font-weight:500;transition:color .2s}
+nav ul li a:hover{color:var(--fg);opacity:1}
+@media(max-width:768px){nav ul{display:none}}
+
+/* ─── Hero ─── */
+.hero{padding:160px 0 80px;text-align:center;position:relative}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;padding:6px 16px;border-radius:100px;
+  border:1px solid var(--border2);background:var(--bg2);font-size:12px;font-family:var(--font-mono);
+  color:var(--cyan);margin-bottom:32px;letter-spacing:.04em}
+.hero-badge .dot{width:6px;height:6px;border-radius:50%;background:var(--cyan);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.hero h1{font-size:clamp(2.5rem,6vw,4.2rem);font-weight:800;line-height:1.08;letter-spacing:-.04em;margin-bottom:20px;
+  background:linear-gradient(135deg,#fff 0%,#94a3b8 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{font-size:18px;color:var(--fg2);max-width:600px;margin:0 auto 40px;font-weight:300;line-height:1.7}
+.hero-stats{display:flex;justify-content:center;gap:48px;flex-wrap:wrap}
+.hero-stat{text-align:center}
+.hero-stat .val{font-size:28px;font-weight:700;font-family:var(--font-mono);color:var(--cyan)}
+.hero-stat .label{font-size:12px;color:var(--fg3);margin-top:4px;text-transform:uppercase;letter-spacing:.08em}
+
+/* ─── Section Headers ─── */
+.sh{margin-bottom:48px}
+.sh-number{font-family:var(--font-mono);font-size:13px;color:var(--cyan);letter-spacing:.06em;margin-bottom:12px;display:block}
+.sh h2{font-size:clamp(1.6rem,3.5vw,2.4rem);font-weight:700;letter-spacing:-.03em;line-height:1.15;margin-bottom:14px}
+.sh p{color:var(--fg2);font-size:16px;max-width:560px;font-weight:300}
+
+/* ─── Cards ─── */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:28px;transition:border-color .3s,box-shadow .3s}
+.card:hover{border-color:var(--border2);box-shadow:0 4px 40px rgba(6,214,160,.04)}
+.card-grid{display:grid;gap:16px}
+.card-grid-2{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+.card-grid-3{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+.card-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:16px;font-size:18px}
+.card-icon.cyan{background:rgba(6,214,160,.1);color:var(--cyan)}
+.card-icon.blue{background:rgba(14,165,233,.1);color:var(--cyan2)}
+.card-icon.violet{background:rgba(139,92,246,.1);color:var(--violet)}
+.card-icon.amber{background:rgba(245,158,11,.1);color:var(--amber)}
+.card-icon.red{background:rgba(239,68,68,.1);color:var(--red)}
+.card h3{font-size:16px;font-weight:600;margin-bottom:8px;letter-spacing:-.01em}
+.card p{font-size:14px;color:var(--fg2);line-height:1.65}
+
+/* ─── Code Blocks ─── */
+.code-block{background:var(--bg);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin:16px 0}
+.code-header{display:flex;align-items:center;gap:8px;padding:10px 16px;border-bottom:1px solid var(--border);background:var(--bg2)}
+.code-dot{width:8px;height:8px;border-radius:50%}
+.code-dot.r{background:#ef4444}.code-dot.y{background:#eab308}.code-dot.g{background:#22c55e}
+.code-filename{margin-left:8px;font-family:var(--font-mono);font-size:12px;color:var(--fg3)}
+pre{padding:16px;overflow-x:auto;font-family:var(--font-mono);font-size:12.5px;line-height:1.7;color:var(--fg2)}
+pre .kw{color:var(--violet)}
+pre .str{color:var(--cyan)}
+pre .cm{color:var(--fg3);font-style:italic}
+pre .fn{color:var(--cyan2)}
+pre .num{color:var(--amber)}
+
+/* ─── Architecture Diagram ─── */
+.arch-diagram{display:flex;align-items:center;justify-content:center;gap:24px;flex-wrap:wrap;padding:40px 20px}
+.arch-box{background:var(--bg3);border:1px solid var(--border2);border-radius:12px;padding:20px 28px;text-align:center;min-width:160px;position:relative}
+.arch-box .name{font-weight:600;font-size:15px;margin-bottom:4px}
+.arch-box .port{font-family:var(--font-mono);font-size:12px;color:var(--fg3)}
+.arch-arrow{color:var(--cyan);font-size:24px;opacity:.5}
+@media(max-width:640px){.arch-arrow{transform:rotate(90deg)}.arch-diagram{flex-direction:column}}
+
+/* ─── Pipeline ─── */
+.pipeline{display:flex;gap:2px;overflow-x:auto;padding:8px 0}
+.pipeline-step{flex:1;min-width:140px;background:var(--bg2);border:1px solid var(--border);padding:16px;text-align:center;position:relative}
+.pipeline-step:first-child{border-radius:10px 0 0 10px}
+.pipeline-step:last-child{border-radius:0 10px 10px 0}
+.pipeline-step .step-num{font-family:var(--font-mono);font-size:11px;color:var(--cyan);margin-bottom:6px}
+.pipeline-step .step-name{font-size:13px;font-weight:600;margin-bottom:4px}
+.pipeline-step .step-desc{font-size:11px;color:var(--fg3)}
+
+/* ─── Troubleshooting Table ─── */
+.issue-table{width:100%;border-collapse:separate;border-spacing:0;border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.issue-table thead{background:var(--bg3)}
+.issue-table th{padding:12px 16px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--fg3);text-align:left;font-weight:600;border-bottom:1px solid var(--border)}
+.issue-table td{padding:12px 16px;font-size:13px;border-bottom:1px solid var(--border);vertical-align:top}
+.issue-table tr:last-child td{border-bottom:none}
+.issue-table tbody tr{transition:background .2s}
+.issue-table tbody tr:hover{background:var(--bg2)}
+.severity{display:inline-block;padding:2px 10px;border-radius:100px;font-size:11px;font-weight:600;font-family:var(--font-mono)}
+.severity.critical{background:rgba(239,68,68,.12);color:var(--critical)}
+.severity.high{background:rgba(245,158,11,.12);color:var(--warning)}
+.severity.medium{background:rgba(14,165,233,.12);color:var(--cyan2)}
+.mono{font-family:var(--font-mono);font-size:12px;color:var(--fg3)}
+
+/* ─── Expandable Issue ─── */
+details{background:var(--bg2);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;transition:border-color .3s}
+details[open]{border-color:var(--border2)}
+summary{padding:16px 20px;cursor:pointer;display:flex;align-items:center;gap:12px;font-weight:600;font-size:14px;list-style:none;user-select:none}
+summary::-webkit-details-marker{display:none}
+summary::before{content:'›';font-size:20px;color:var(--fg3);transition:transform .2s;display:inline-block;width:16px}
+details[open] summary::before{transform:rotate(90deg)}
+.detail-body{padding:0 20px 20px;font-size:13px;color:var(--fg2);line-height:1.75}
+.detail-body h4{font-size:13px;color:var(--fg);margin:12px 0 6px;font-weight:600}
+
+/* ─── Metrics Section ─── */
+.metric-row{display:grid;grid-template-columns:2fr 1fr 3fr;gap:16px;padding:12px 0;border-bottom:1px solid var(--border);align-items:center;font-size:13px}
+.metric-row:last-child{border-bottom:none}
+.metric-name{font-family:var(--font-mono);font-size:12px;color:var(--cyan)}
+.metric-type{font-family:var(--font-mono);font-size:11px;padding:2px 8px;border-radius:4px;background:var(--bg3);color:var(--fg3);text-align:center;width:fit-content}
+.metric-desc{color:var(--fg2)}
+
+/* ─── Tags ─── */
+.tag{display:inline-block;padding:3px 10px;border-radius:6px;font-size:11px;font-family:var(--font-mono);font-weight:500;margin:2px}
+.tag-cyan{background:rgba(6,214,160,.1);color:var(--cyan);border:1px solid rgba(6,214,160,.2)}
+.tag-blue{background:rgba(14,165,233,.1);color:var(--cyan2);border:1px solid rgba(14,165,233,.2)}
+.tag-violet{background:rgba(139,92,246,.1);color:var(--violet);border:1px solid rgba(139,92,246,.2)}
+.tag-amber{background:rgba(245,158,11,.1);color:var(--amber);border:1px solid rgba(245,158,11,.2)}
+
+/* ─── Footer ─── */
+footer{padding:60px 0 40px;text-align:center;border-top:1px solid var(--border)}
+footer p{font-size:13px;color:var(--fg3)}
+
+/* ─── Animations ─── */
+.fade-up{opacity:0;transform:translateY(20px);transition:opacity .6s ease,transform .6s ease}
+.fade-up.visible{opacity:1;transform:translateY(0)}
+@media(prefers-reduced-motion:reduce){.fade-up{opacity:1;transform:none;transition:none}}
+
+/* ─── Responsive ─── */
+@media(max-width:768px){
+  section{padding:70px 0 40px}
+  .hero{padding:120px 0 60px}
+  .hero-stats{gap:24px}
+  .pipeline{flex-direction:column}
+  .pipeline-step{border-radius:10px!important}
+  .metric-row{grid-template-columns:1fr;gap:4px}
+  .issue-table{font-size:12px}
+  .issue-table th,.issue-table td{padding:8px 10px}
+  .overflow-x{overflow-x:auto}
+}
+</style>
+</head>
+<body>
+
+<div class="mesh-bg"></div>
+<div class="grid-pattern"></div>
+
+<!-- Navigation -->
+<nav>
+  <div class="inner">
+    <div class="logo"><span>~/</span> devops-challenge</div>
+    <ul>
+      <li><a href="#architecture">Architecture</a></li>
+      <li><a href="#docker">Docker</a></li>
+      <li><a href="#kubernetes">Kubernetes</a></li>
+      <li><a href="#cicd">CI/CD</a></li>
+      <li><a href="#monitoring">Monitoring</a></li>
+      <li><a href="#troubleshooting">Troubleshooting</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-badge"><span class="dot"></span> Production-Ready Solution</div>
+    <h1>DevOps Engineer Challenge</h1>
+    <p>A microservices deployment with containerization, Kubernetes orchestration, CI/CD automation, monitoring, and production troubleshooting.</p>
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="val">5</div><div class="label">Parts Completed</div></div>
+      <div class="hero-stat"><div class="val">196MB</div><div class="label">Docker Image</div></div>
+      <div class="hero-stat"><div class="val">8</div><div class="label">Bugs Found</div></div>
+      <div class="hero-stat"><div class="val">5</div><div class="label">Alert Rules</div></div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- Architecture -->
+<section id="architecture">
+  <div class="container">
+    <div class="sh fade-up">
+      <span class="sh-number">01 — ARCHITECTURE</span>
+      <h2>System Overview</h2>
+      <p>Three-service microservice architecture with zero-trust networking and graceful shutdown handling.</p>
+    </div>
+
+    <div class="arch-diagram fade-up">
+      <div class="arch-box">
+        <div style="font-size:22px;margin-bottom:8px">🌐</div>
+        <div class="name">API Gateway</div>
+        <div class="port">:3000 · Express</div>
+        <div style="margin-top:8px"><span class="tag tag-cyan">ingress: any</span></div>
+      </div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-box">
+        <div style="font-size:22px;margin-bottom:8px">👤</div>
+        <div class="name">User Service</div>
+        <div class="port">:3001 · Express</div>
+        <div style="margin-top:8px"><span class="tag tag-blue">ingress: gateway</span></div>
+      </div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-box">
+        <div style="font-size:22px;margin-bottom:8px">⚡</div>
+        <div class="name">Redis</div>
+        <div class="port">:6379 · Alpine</div>
+        <div style="margin-top:8px"><span class="tag tag-violet">ingress: user-svc</span></div>
+      </div>
+    </div>
+
+    <div class="card-grid card-grid-3 fade-up" style="margin-top:40px">
+      <div class="card">
+        <div class="card-icon cyan">🔒</div>
+        <h3>Zero-Trust Networking</h3>
+        <p>Network Policies enforce explicit allow rules between services. Each pod can only reach its direct dependencies.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon blue">🩺</div>
+        <h3>Health Probes</h3>
+        <p>Liveness (<code>/health/live</code>) for restart decisions. Readiness (<code>/health/ready</code>) checks downstream dependencies before serving traffic.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon violet">🛑</div>
+        <h3>Graceful Shutdown</h3>
+        <p>SIGTERM handlers close HTTP server, drain Redis connections, and force-exit after 30s timeout. No dropped requests during deploys.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- Docker -->
+<section id="docker">
+  <div class="container">
+    <div class="sh fade-up">
+      <span class="sh-number">02 — CONTAINERIZATION</span>
+      <h2>Production Docker Images</h2>
+      <p>Multi-stage builds with minimal attack surface. Non-root execution. Under 200MB final image.</p>
+    </div>
+
+    <div class="code-block fade-up">
+      <div class="code-header">
+        <span class="code-dot r"></span><span class="code-dot y"></span><span class="code-dot g"></span>
+        <span class="code-filename">apps/api-gateway/Dockerfile</span>
+      </div>
+<pre><span class="kw">FROM</span> node:20.18-alpine3.19 <span class="kw">AS</span> deps
+<span class="kw">WORKDIR</span> /app
+<span class="kw">COPY</span> package*.json ./
+<span class="kw">RUN</span> npm ci --omit=dev --ignore-scripts && \
+    npm cache clean --force && \
+    npx -y node-prune
+
+<span class="kw">FROM</span> node:20.18-alpine3.19 <span class="kw">AS</span> production
+<span class="kw">RUN</span> addgroup -g <span class="num">1001</span> -S appgroup && \
+    adduser -S appuser -u <span class="num">1001</span> -G appgroup && \
+    rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack
+<span class="kw">WORKDIR</span> /app
+<span class="kw">COPY</span> --from=deps --chown=appuser:appgroup /app/node_modules ./node_modules
+<span class="kw">COPY</span> --chown=appuser:appgroup src ./src
+<span class="kw">USER</span> appuser
+<span class="kw">EXPOSE</span> <span class="num">3000</span>
+<span class="kw">HEALTHCHECK</span> --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  <span class="kw">CMD</span> node -e <span class="str">"require('http').get('http://localhost:3000/health/live', ...)"</span>
+<span class="kw">CMD</span> [<span class="str">"node"</span>, <span class="str">"src/index.js"</span>]</pre>
+    </div>
+
+    <div class="card-grid card-grid-2 fade-up" style="margin-top:24px">
+      <div class="card">
+        <h3>Security Hardening</h3>
+        <p>Non-root user UID 1001. npm and corepack removed from production image. No shell utilities beyond base Alpine. <code>--ignore-scripts</code> prevents arbitrary code execution during install.</p>
+        <div style="margin-top:12px">
+          <span class="tag tag-cyan">non-root</span>
+          <span class="tag tag-blue">no-npm</span>
+          <span class="tag tag-violet">alpine 3.19</span>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Layer Optimization</h3>
+        <p>Two-stage build separates dependency install from source copy. <code>node-prune</code> removes docs, tests, TypeScript files, and licenses from node_modules. Final image: <strong>196MB</strong>.</p>
+        <div style="margin-top:12px">
+          <span class="tag tag-amber">196MB</span>
+          <span class="tag tag-cyan">multi-stage</span>
+          <span class="tag tag-blue">node-prune</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- Kubernetes -->
+<section id="kubernetes">
+  <div class="container">
+    <div class="sh fade-up">
+      <span class="sh-number">03 — KUBERNETES</span>
+      <h2>Orchestration & Scaling</h2>
+      <p>Kustomize overlays for dev/prod. HPA, PDBs, Network Policies, and proper secrets management.</p>
+    </div>
+
+    <div class="card-grid card-grid-2 fade-up">
+      <div class="card">
+        <h3>Resource Management</h3>
+        <div style="margin-top:12px;font-size:13px;color:var(--fg2)">
+          <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)">
+            <span>Base — CPU</span><span class="mono">100m → 500m</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)">
+            <span>Base — Memory</span><span class="mono">128Mi → 256Mi</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)">
+            <span>Prod — CPU</span><span class="mono">200m → 1000m</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:6px 0">
+            <span>Prod — Memory</span><span class="mono">256Mi → 512Mi</span>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Autoscaling & Availability</h3>
+        <div style="margin-top:12px;font-size:13px;color:var(--fg2)">
+          <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)">
+            <span>HPA Target</span><span class="mono">CPU 70%</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)">
+            <span>Min Replicas (base)</span><span class="mono">2</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)">
+            <span>Min Replicas (prod)</span><span class="mono">3</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:6px 0">
+            <span>PDB minAvailable</span><span class="mono">1</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card fade-up" style="margin-top:16px">
+      <h3>Secrets Strategy — Production Recommendation</h3>
+      <p style="margin-top:8px">Base secrets use Kubernetes Secret objects. For production, three external integrations are recommended:</p>
+      <div class="card-grid card-grid-3" style="margin-top:16px">
+        <div style="padding:16px;background:var(--bg);border-radius:8px;border:1px solid var(--border)">
+          <div style="font-size:13px;font-weight:600;color:var(--cyan);margin-bottom:6px">External Secrets Operator</div>
+          <div style="font-size:12px;color:var(--fg3)">Syncs from AWS/GCP/Azure secret managers. Automatic rotation.</div>
+        </div>
+        <div style="padding:16px;background:var(--bg);border-radius:8px;border:1px solid var(--border)">
+          <div style="font-size:13px;font-weight:600;color:var(--violet);margin-bottom:6px">Sealed Secrets</div>
+          <div style="font-size:12px;color:var(--fg3)">Encrypt with cluster key. Safe to commit to Git. Bitnami controller decrypts at runtime.</div>
+        </div>
+        <div style="padding:16px;background:var(--bg);border-radius:8px;border:1px solid var(--border)">
+          <div style="font-size:13px;font-weight:600;color:var(--amber);margin-bottom:6px">HashiCorp Vault</div>
+          <div style="font-size:12px;color:var(--fg3)">Dynamic secrets with TTL. Vault Agent Injector for automatic pod injection.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- CI/CD -->
+<section id="cicd">
+  <div class="container">
+    <div class="sh fade-up">
+      <span class="sh-number">04 — CI/CD PIPELINE</span>
+      <h2>GitHub Actions Workflow</h2>
+      <p>Automated build, test, security scan, and deploy. Branch-based environment targeting.</p>
+    </div>
+
+    <div class="pipeline fade-up">
+      <div class="pipeline-step">
+        <div class="step-num">01</div>
+        <div class="step-name">Test & Lint</div>
+        <div class="step-desc">npm ci, lint, unit tests with Redis service container</div>
+      </div>
+      <div class="pipeline-step">
+        <div class="step-num">02</div>
+        <div class="step-name">Integration</div>
+        <div class="step-desc">docker-compose up, health checks, endpoint tests</div>
+      </div>
+      <div class="pipeline-step">
+        <div class="step-num">03</div>
+        <div class="step-name">Build & Push</div>
+        <div class="step-desc">Docker Buildx, SHA + branch tagging, GHA cache</div>
+      </div>
+      <div class="pipeline-step">
+        <div class="step-num">04</div>
+        <div class="step-name">Security</div>
+        <div class="step-desc">Trivy scan for CRITICAL and HIGH vulnerabilities</div>
+      </div>
+      <div class="pipeline-step">
+        <div class="step-num">05</div>
+        <div class="step-name">Deploy</div>
+        <div class="step-desc">Kustomize set image, kubectl apply, rollout status</div>
+      </div>
+    </div>
+
+    <div class="card-grid card-grid-2 fade-up" style="margin-top:24px">
+      <div class="card">
+        <h3>Branch Strategy</h3>
+        <div style="margin-top:8px;font-size:13px;color:var(--fg2)">
+          <code style="color:var(--cyan)">develop</code> → deploys to <span class="tag tag-blue">dev</span> overlay<br>
+          <code style="color:var(--cyan)">main</code> → deploys to <span class="tag tag-amber">prod</span> overlay
+        </div>
+      </div>
+      <div class="card">
+        <h3>Image Tagging</h3>
+        <div style="margin-top:8px;font-size:13px;color:var(--fg2)">
+          <code style="color:var(--cyan)">{registry}/{image}:{sha}</code><br>
+          <code style="color:var(--cyan)">{registry}/{image}:{branch}-{run}</code>
+        </div>
+      </div>
+    </div>
+
+    <div class="code-block fade-up" style="margin-top:24px">
+      <div class="code-header">
+        <span class="code-dot r"></span><span class="code-dot y"></span><span class="code-dot g"></span>
+        <span class="code-filename">.github/workflows/ci-cd.yml — Integration Test</span>
+      </div>
+<pre><span class="cm"># Health-check loop waits for all 3 services (max 60s)</span>
+<span class="kw">while</span> [ $ELAPSED -lt $TIMEOUT ]; <span class="kw">do</span>
+  GATEWAY_HEALTH=$(<span class="fn">docker inspect</span> --format=<span class="str">'{{.State.Health.Status}}'</span> ...)
+  <span class="kw">if</span> [ <span class="str">"$GATEWAY_HEALTH"</span> = <span class="str">"healthy"</span> ] && ... ; <span class="kw">then</span>
+    <span class="fn">echo</span> <span class="str">"All services are healthy"</span>; <span class="kw">break</span>
+  <span class="kw">fi</span>
+  sleep $INTERVAL
+<span class="kw">done</span>
+
+<span class="cm"># Endpoint tests: GET /health, GET /metrics, GET /api/users, POST /api/users</span></pre>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- Monitoring -->
+<section id="monitoring">
+  <div class="container">
+    <div class="sh fade-up">
+      <span class="sh-number">05 — MONITORING</span>
+      <h2>Observability & Alerting</h2>
+      <p>Prometheus metrics, structured JSON logging with Winston, and 5 production alerting rules.</p>
+    </div>
+
+    <div class="card fade-up">
+      <h3>Application Metrics</h3>
+      <div style="margin-top:16px">
+        <div class="metric-row">
+          <div class="metric-name">http_requests_total</div>
+          <div><span class="metric-type">Counter</span></div>
+          <div class="metric-desc">Total HTTP requests by method, route, and status code</div>
+        </div>
+        <div class="metric-row">
+          <div class="metric-name">http_request_duration_seconds</div>
+          <div><span class="metric-type">Histogram</span></div>
+          <div class="metric-desc">Request duration with buckets [5ms … 5s]</div>
+        </div>
+        <div class="metric-row">
+          <div class="metric-name">process_resident_memory_bytes</div>
+          <div><span class="metric-type">Gauge</span></div>
+          <div class="metric-desc">Resident memory size of the Node.js process</div>
+        </div>
+        <div class="metric-row">
+          <div class="metric-name">nodejs_eventloop_lag_seconds</div>
+          <div><span class="metric-type">Gauge</span></div>
+          <div class="metric-desc">Event loop lag — key indicator of Node.js health</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-grid card-grid-3 fade-up" style="margin-top:16px">
+      <div class="card">
+        <div class="card-icon red">🚨</div>
+        <h3>HighErrorRate</h3>
+        <p>Fires when 5xx error rate exceeds 5% over a 5-minute window. Severity: <strong style="color:var(--critical)">critical</strong>.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon amber">⏱</div>
+        <h3>HighRequestLatency</h3>
+        <p>P99 latency above 1 second for 5 minutes. Investigate slow routes and Redis connections. Severity: <strong style="color:var(--warning)">warning</strong>.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon red">💀</div>
+        <h3>ServiceDown</h3>
+        <p>Prometheus <code>up</code> metric equals 0 for over 1 minute. Immediate page. Severity: <strong style="color:var(--critical)">critical</strong>.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon amber">🧠</div>
+        <h3>HighMemoryUsage</h3>
+        <p>Resident memory exceeds 80% of container limit for 10 minutes. Potential memory leak. Severity: <strong style="color:var(--warning)">warning</strong>.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon blue">🔗</div>
+        <h3>DependencyHealthFailed</h3>
+        <p>Readiness endpoint returning 503 for 3+ minutes. Downstream dependency issues. Severity: <strong style="color:var(--warning)">warning</strong>.</p>
+      </div>
+    </div>
+
+    <div class="card fade-up" style="margin-top:16px">
+      <h3>Structured Logging — Winston JSON</h3>
+      <div class="code-block" style="margin:12px 0 0">
+        <div class="code-header">
+          <span class="code-dot r"></span><span class="code-dot y"></span><span class="code-dot g"></span>
+          <span class="code-filename">stdout</span>
+        </div>
+<pre>{
+  <span class="str">"level"</span>:       <span class="str">"info"</span>,
+  <span class="str">"message"</span>:     <span class="str">"HTTP request"</span>,
+  <span class="str">"service"</span>:     <span class="str">"api-gateway"</span>,
+  <span class="str">"method"</span>:      <span class="str">"GET"</span>,
+  <span class="str">"route"</span>:       <span class="str">"/api/users"</span>,
+  <span class="str">"status"</span>:      <span class="num">200</span>,
+  <span class="str">"duration"</span>:    <span class="str">"0.025s"</span>,
+  <span class="str">"timestamp"</span>:   <span class="str">"2026-02-06T12:00:00.000Z"</span>
+}</pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- Troubleshooting -->
+<section id="troubleshooting">
+  <div class="container">
+    <div class="sh fade-up">
+      <span class="sh-number">06 — TROUBLESHOOTING</span>
+      <h2>Broken Deployment Analysis</h2>
+      <p>8 issues identified in <code>k8s/broken/</code> manifests. 4 critical, 2 high, 2 medium severity.</p>
+    </div>
+
+    <div class="overflow-x fade-up">
+      <table class="issue-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Issue</th>
+            <th>File</th>
+            <th>Severity</th>
+            <th>Impact</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="mono">1</td>
+            <td>Label Mismatch</td>
+            <td class="mono">api-gateway.yaml</td>
+            <td><span class="severity critical">critical</span></td>
+            <td>Deployment cannot manage pods</td>
+          </tr>
+          <tr>
+            <td class="mono">2</td>
+            <td>Wrong Container Port</td>
+            <td class="mono">api-gateway.yaml</td>
+            <td><span class="severity medium">medium</span></td>
+            <td>Service mesh / monitoring failures</td>
+          </tr>
+          <tr>
+            <td class="mono">3</td>
+            <td>Insufficient Memory (64Mi)</td>
+            <td class="mono">api-gateway.yaml</td>
+            <td><span class="severity high">high</span></td>
+            <td>OOMKilled, constant restarts</td>
+          </tr>
+          <tr>
+            <td class="mono">4</td>
+            <td>Wrong Redis Hostname</td>
+            <td class="mono">user-service.yaml</td>
+            <td><span class="severity critical">critical</span></td>
+            <td>Cannot connect to Redis</td>
+          </tr>
+          <tr>
+            <td class="mono">5</td>
+            <td>Aggressive Liveness Probe</td>
+            <td class="mono">user-service.yaml</td>
+            <td><span class="severity medium">medium</span></td>
+            <td>Unnecessary pod restarts</td>
+          </tr>
+          <tr>
+            <td class="mono">6</td>
+            <td>Service targetPort Mismatch</td>
+            <td class="mono">user-service.yaml</td>
+            <td><span class="severity critical">critical</span></td>
+            <td>Service completely unreachable</td>
+          </tr>
+          <tr>
+            <td class="mono">7</td>
+            <td>Redis Auth Mismatch</td>
+            <td class="mono">redis.yaml</td>
+            <td><span class="severity critical">critical</span></td>
+            <td>NOAUTH authentication failures</td>
+          </tr>
+          <tr>
+            <td class="mono">8</td>
+            <td>Secrets in ConfigMap</td>
+            <td class="mono">configmap.yaml</td>
+            <td><span class="severity high">high</span></td>
+            <td>Security / compliance violation</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div style="margin-top:32px" class="fade-up">
+      <details>
+        <summary><span class="severity critical" style="margin-right:8px">critical</span> #1 — Label Mismatch in API Gateway</summary>
+        <div class="detail-body">
+          <h4>What's Wrong</h4>
+          Selector uses <code>app: api-gateway</code> but pod template labels use <code>app: gateway</code>. The Deployment controller can't find its own pods.
+          <h4>Symptoms</h4>
+          <code>kubectl get deployments</code> shows 0/1 READY. Scaling commands have no effect. Rolling updates fail silently.
+          <h4>Fix</h4>
+          Change pod label to <code>app: api-gateway</code> to match selector.
+        </div>
+      </details>
+      <details>
+        <summary><span class="severity medium" style="margin-right:8px">medium</span> #2 — Wrong Container Port (8080 vs 3000)</summary>
+        <div class="detail-body">
+          <h4>What's Wrong</h4>
+          <code>containerPort: 8080</code> declared but app listens on 3000. Informational metadata is wrong, breaking service meshes and Prometheus discovery.
+          <h4>Fix</h4>
+          Change to <code>containerPort: 3000</code>.
+        </div>
+      </details>
+      <details>
+        <summary><span class="severity high" style="margin-right:8px">high</span> #3 — Insufficient Memory Limit (64Mi)</summary>
+        <div class="detail-body">
+          <h4>What's Wrong</h4>
+          64Mi is below V8's minimum operational threshold. Node.js needs at least 128Mi for the V8 engine, heap, stack frames, buffer pools, and GC.
+          <h4>Symptoms</h4>
+          Pods constantly OOMKilled. <code>kubectl describe pod</code> shows <code>Reason: OOMKilled</code>.
+          <h4>Fix</h4>
+          Set requests to 128Mi, limits to 256Mi.
+        </div>
+      </details>
+      <details>
+        <summary><span class="severity critical" style="margin-right:8px">critical</span> #4 — Wrong Redis Hostname</summary>
+        <div class="detail-body">
+          <h4>What's Wrong</h4>
+          <code>REDIS_HOST=redis-master</code> but the Redis Service is named <code>redis</code>. DNS lookup for <code>redis-master</code> returns NXDOMAIN.
+          <h4>Symptoms</h4>
+          <code>ENOTFOUND redis-master</code> in logs. All user operations return 500. Health check fails on <code>/health/ready</code>.
+          <h4>Fix</h4>
+          Change to <code>value: "redis"</code>.
+        </div>
+      </details>
+      <details>
+        <summary><span class="severity medium" style="margin-right:8px">medium</span> #5 — Aggressive Liveness Probe (failureThreshold: 1)</summary>
+        <div class="detail-body">
+          <h4>What's Wrong</h4>
+          A single failed health check triggers a restart. GC pauses (50–200ms), CPU throttling, or network latency spikes cause false positives.
+          <h4>Fix</h4>
+          Set <code>failureThreshold: 3</code> as per Kubernetes best practices.
+        </div>
+      </details>
+      <details>
+        <summary><span class="severity critical" style="margin-right:8px">critical</span> #6 — Service targetPort Mismatch (8080 vs 3001)</summary>
+        <div class="detail-body">
+          <h4>What's Wrong</h4>
+          Service routes traffic to <code>targetPort: 8080</code> but container listens on 3001. TCP connections fail with "connection refused".
+          <h4>Symptoms</h4>
+          API Gateway receives 502 Bad Gateway. <code>kubectl port-forward</code> doesn't work.
+          <h4>Fix</h4>
+          Change to <code>targetPort: 3001</code>.
+        </div>
+      </details>
+      <details>
+        <summary><span class="severity critical" style="margin-right:8px">critical</span> #7 — Redis Auth Mismatch</summary>
+        <div class="detail-body">
+          <h4>What's Wrong</h4>
+          Redis has <code>--requirepass supersecret</code> but user-service doesn't have <code>REDIS_PASSWORD</code> env var configured.
+          <h4>Symptoms</h4>
+          <code>NOAUTH Authentication required</code> on every Redis operation. Application starts but all CRUD operations fail.
+          <h4>Fix</h4>
+          Either remove <code>--requirepass</code> from Redis, or add <code>REDIS_PASSWORD</code> to user-service via a Kubernetes Secret.
+        </div>
+      </details>
+      <details>
+        <summary><span class="severity high" style="margin-right:8px">high</span> #8 — Secrets Stored in ConfigMap</summary>
+        <div class="detail-body">
+          <h4>What's Wrong</h4>
+          <code>REDIS_PASSWORD</code> and <code>DATABASE_URL</code> (containing credentials) stored in ConfigMap instead of Secret. ConfigMaps are not encrypted at rest, have looser RBAC, and may be logged in debugging output.
+          <h4>Fix</h4>
+          Move credentials to a Kubernetes Secret. Reference via <code>secretKeyRef</code> in deployments. For production, integrate with external secrets management (Vault, AWS Secrets Manager, etc.).
+        </div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- Trade-offs -->
+<section id="decisions">
+  <div class="container">
+    <div class="sh fade-up">
+      <span class="sh-number">07 — DECISIONS</span>
+      <h2>Trade-offs & Rationale</h2>
+    </div>
+
+    <div class="card-grid card-grid-2 fade-up">
+      <div class="card">
+        <h3>Image Size vs Build Complexity</h3>
+        <p>Aggressive node_modules cleanup via <code>node-prune</code> reduced image from 212MB to 196MB. Considered distroless images but rejected due to debugging limitations in production incidents.</p>
+      </div>
+      <div class="card">
+        <h3>HPA CPU-Only vs Multi-Metric</h3>
+        <p>CPU-based autoscaling at 70% threshold. Simple, predictable, sufficient for HTTP workloads. Multi-metric autoscaling (memory + custom) would add complexity with marginal benefit for this use case.</p>
+      </div>
+      <div class="card">
+        <h3>Zero-Trust Network Policies</h3>
+        <p>Explicit allow rules between services only. Defense in depth limits blast radius. Allow-all was rejected — the small complexity cost is worth the security posture.</p>
+      </div>
+      <div class="card">
+        <h3>Redis Without PVC</h3>
+        <p>No PersistentVolumeClaim for Redis. Data is sample/seed data re-created on startup via <code>initializeData()</code>. Persistence would add operational complexity without benefit for ephemeral demo data.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <p style="font-family:var(--font-mono);color:var(--cyan);margin-bottom:8px">Andres Garcia M.</p>
+    <p>DevOps Engineer Challenge — Production-Ready Microservices</p>
+  </div>
+</footer>
+
+<script>
+// Intersection Observer for fade-in animations
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+
+// Smooth scroll for nav links
+document.querySelectorAll('nav a[href^="#"]').forEach(link => {
+  link.addEventListener('click', e => {
+    e.preventDefault();
+    const target = document.querySelector(link.getAttribute('href'));
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+});
+</script>
+</body>
+</html>
